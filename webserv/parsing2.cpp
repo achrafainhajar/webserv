@@ -45,7 +45,7 @@ size_t pars::which_one1(size_t n,std::string data,loc location)
     }
     else if(data.find("allow_methods") == n)
     {
-        return(allow_methods(data,n,location.allow_methods));   
+        return(allow_methods(data,n,location.allow_methods,location));   
     }
     else if(data.find("return") == n)
     {

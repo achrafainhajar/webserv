@@ -17,4 +17,9 @@ void pars::fill_request(std::string data)
     }
     else
         s >> r_data.method;
+
+    std::vector<std::string>::iterator it = std::find(s_data[0].methods.begin(), s_data[0].methods.end(), r_data.method);
+
+    if (it == s_data[0].methods.end())
+        exit(1);
 }

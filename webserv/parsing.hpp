@@ -6,6 +6,8 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <algorithm>
+#include <cstdlib>
 
 class loc
 {
@@ -52,7 +54,7 @@ class pars{
     size_t index(std::string &src,size_t n,std::string &str);
     size_t body_size(std::string &src,size_t n,std::string &str);
     size_t error_page(std::string &src,size_t n,data &server);
-    size_t allow_methods(std::string &src,size_t n,std::string &str);
+    size_t allow_methods(std::string &src,size_t n,std::string &str,data &server);
     size_t check_between(size_t start,size_t end);
     size_t check_server_data(size_t n);
     size_t which_one1(size_t n,std::string data,loc location);
@@ -60,6 +62,7 @@ class pars{
     size_t alias(std::string &src,size_t n,std::string &str);
     size_t autoindex(std::string &src,size_t n,std::string &str);
     void check_syntax(size_t i);
+    void split_methods(std::string str,data &server);
     void fill_request(std::string data);
 };  
 size_t whitespaces(std::string str,size_t n);

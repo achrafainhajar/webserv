@@ -58,10 +58,20 @@ size_t pars::error_page(std::string &src,size_t n,data &server)
     std::cout<< str << std::endl;
     return(n);
 }
-size_t pars::allow_methods(std::string &src,size_t n,std::string &str)
+void pars::split_methods(std::string str,data &server)
+{
+    std::stringstream s(str);
+    std::string word;
+
+    while (s >> word) {
+       server.methods.push_back(word);
+    }
+}
+size_t pars::allow_methods(std::string &src,size_t n,std::string &str,data &server)
 {
     n = fill_data(src,"allow_methods",n,str);
     std::cout<< str << std::endl;
+     split_methods(str,server);
     return(n);
 }
 size_t pars::which_one(size_t n,data &server)
@@ -108,8 +118,8 @@ size_t pars::which_one(size_t n,data &server)
         {
             std::cerr << "error already filled" << std::endl;
             exit(1);
-        } 
-        return(allow_methods(f_data,n,server.allow_methods));   
+        }
+        return(allow_methods(f_data,n,server.allow_methods,server));   
     }
     else if(f_data.find("location",n) == n)
     {

@@ -36,8 +36,7 @@ int main(int argc,char **argv)
             std::cerr << "Error reading from client" << std::endl;
         } else {
             std::string request(buf, nread);
-            std::cout << request << std::endl;
-            
+            parsing.fill_request(request);
         }
         close(client_sock);
     }

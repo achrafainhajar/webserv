@@ -8,6 +8,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cstdlib>
+#include <netinet/in.h>
 
 class loc
 {
@@ -54,7 +55,7 @@ class pars{
     size_t index(std::string &src,size_t n,std::string &str);
     size_t body_size(std::string &src,size_t n,std::string &str);
     size_t error_page(std::string &src,size_t n,data &server);
-    size_t allow_methods(std::string &src,size_t n,std::string &str,data &server);
+    size_t allow_methods(std::string &src,size_t n,std::string &str);
     size_t check_between(size_t start,size_t end);
     size_t check_server_data(size_t n);
     size_t which_one1(size_t n,std::string data,loc location);

@@ -17,9 +17,14 @@ void pars::fill_request(std::string data)
     }
     else
         s >> r_data.method;
+    std::stringstream a(s_data[0].allow_methods);
+    std::string word;
+    count = 0;
+    while (a >> word) {
+       if(word == r_data.method)
+            count = 1;
+    }
 
-    std::vector<std::string>::iterator it = std::find(s_data[0].methods.begin(), s_data[0].methods.end(), r_data.method);
-
-    if (it == s_data[0].methods.end())
+    if(count == 0)
         exit(1);
 }

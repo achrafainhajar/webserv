@@ -8,6 +8,7 @@ pars::pars(char *str): inputfile(str)
     }
     reading_file();
 }
+
 size_t pars::check_between(size_t start,size_t end)
 {
     for(size_t i = start;i < end;i++)

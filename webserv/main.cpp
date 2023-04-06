@@ -18,13 +18,6 @@ int main(int argc,char **argv)
 {
     check_arguments(argc,argv);
     pars parsing(argv[1]);
-    std::ifstream html_file;
-    html_file.open("index.html");
-    std::string response_body;
-     std::string line;
-    while (getline(html_file, line)) {
-        response_body += line + "\n";
-    }
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -45,19 +38,9 @@ int main(int argc,char **argv)
             std::string request(buf, nread);
 
             parsing.fill_request(request);
-               std::ostringstream response;
-               response << "HTTP/1.1 200 OK\r\n";
-                response << "Content-Type: text/html\r\n";
-                response << "Content-Length: " << response_body.length() << "\r\n";
-                response << "\r\n";
-                response << response_body;
-                std::string response_str = response.str();
-                 char response_buf[response_str.size() + 1];
-    std::copy(response_str.begin(), response_str.end(), response_buf);
-    response_buf[response_str.size()] = '\0';
+             parsing.respons(client_sock);  
 
 // Send the response
-            send(client_sock, response_buf ,strlen(response_buf), 0);
         }
         close(client_sock);
     }

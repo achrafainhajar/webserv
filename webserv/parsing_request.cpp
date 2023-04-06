@@ -24,7 +24,6 @@ void pars::fill_request(std::string data)
        if(word == r_data.method)
             count = 1;
     }
-
     if(count == 0)
         exit(1);
 }

@@ -1,6 +1,6 @@
 CC = c++ -Wall -Wextra -Werror -std=c++98
 
-SRC =  main.cpp parsing.cpp parsing1.cpp parsing2.cpp parsing_request.cpp
+SRC =  main.cpp parsing.cpp parsing1.cpp send.cpp parsing2.cpp parsing_request.cpp
 
 NAME = webserv
 

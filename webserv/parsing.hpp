@@ -44,6 +44,7 @@ class pars{
     std::string f_data;
     std::vector<data> s_data; 
     request r_data;
+
     pars(char *str);
     void check_data();
     size_t location(size_t n,data &server);
@@ -65,6 +66,7 @@ class pars{
     void check_syntax(size_t i);
     void split_methods(std::string str,data &server);
     void fill_request(std::string data);
+    void respons(int client_sock);
 };  
 size_t whitespaces(std::string str,size_t n);
 size_t fill_data(std::string str,std::string dest,size_t n , std::string &data);

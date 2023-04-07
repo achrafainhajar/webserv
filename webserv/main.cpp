@@ -36,15 +36,12 @@ int main(int argc,char **argv)
             std::cerr << "Error reading from client" << std::endl;
         } else {
             std::string request(buf, nread);
-
             parsing.fill_request(request);
-             parsing.respons(client_sock);  
-
-// Send the response
+            parsing.respons(client_sock);  
         }
         close(client_sock);
     }
-    close(sock);
+    
 
     return 0;
 

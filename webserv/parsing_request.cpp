@@ -1,17 +1,19 @@
 #include "parsing.hpp"
 
-void pars::fill_request(std::string data)
+void pars::fill_request(std::string str)
 {
-    
+    std::string data = str.substr(0,str.find("\r\n"));
     std::stringstream s(data);
     int count = 1;
-    for(int i = 0;data[i];i++)
+    // for(int i = 0;data[i];i++)
+    // {
+    //     if(data[i] == ' ')
+    //         count++;
+    // }
+    if(data[data.find("/")+1] != ' ')
     {
-        if(data[i] == ' ')
-            count++;
-    }
-    if(count == 3)
-    {
+
+        std::cout << data << std::endl;
         s >> r_data.method;
         s >> r_data.url;
     }

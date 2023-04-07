@@ -76,7 +76,7 @@ size_t pars::location(size_t n,data &server)
         exit(1);
     while(location[i] != ' ' && location[i] != '\t')
         i++;
-    s_location.path = location.substr(location.find('/'),i - 1);
+    s_location.path = location.substr(location.find('/'),i);
     if(location[i] != ' ' && location[i] != '\t')
         exit(1);
     i = whitespaces(location,i);

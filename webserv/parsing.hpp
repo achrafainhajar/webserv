@@ -5,7 +5,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <sstream>
+#include <sstream>          
+#include <cstring>
 #include <algorithm>
 #include <cstdlib>
 #include <netinet/in.h>
@@ -36,6 +37,8 @@ class data{
 class request{
     public :
     std::string method;
+    int status;
+    char *response_buf;
     std::string url;
 };
 class pars{
@@ -65,8 +68,12 @@ class pars{
     size_t autoindex(std::string &src,size_t n,std::string &str);
     void check_syntax(size_t i);
     void split_methods(std::string str,data &server);
-    void fill_request(std::string data);
+    void fill_request(std::string str);
     void respons(int client_sock);
+    void respons_200(std::string index);
+    void res_location(std::vector<loc>::iterator it);
+    void check_location(void);
+    void respons_404(void);
 };  
 size_t whitespaces(std::string str,size_t n);
 size_t fill_data(std::string str,std::string dest,size_t n , std::string &data);

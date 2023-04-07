@@ -2,10 +2,17 @@
 
 void pars::respons_404()
 {
-    std::string response = "HTTP/1.1 404 Not Found\r\n"
-                      "Content-Length: 0\r\n"
-                      "Connection: close\r\n\r\n";
-    r_data.response_buf = (char *)response.c_str();
+    std::ostringstream response;
+    response << "HTTP/1.1 404 Not Found\r\n";
+    response << "Content-Type: text/html; charset=UTF-8\r\n";
+    response << "Content-Length: " << 6 << "\r\n";
+    response << "\r\n";
+    response<<"sry";
+    std::string response_str = response.str();
+    char response_buf[response_str.size() + 1];
+    std::copy(response_str.begin(), response_str.end(), response_buf);
+    response_buf[response_str.size()] = '\0';
+    r_data.response_buf = response_buf;
 }
 void pars::respons_200(std::string index)
 {
@@ -49,12 +56,13 @@ void pars::check_location()
                 break;
             }
         }
+        
         if(count == 0)
         {
             respons_404();
             return;
         }
-        respons_200(r_data.url);
+        respons_200(it->index);
         return;
     }
      respons_200(s_data[0].index);

@@ -33,29 +33,29 @@ size_t fill_l_data(std::string str,std::string dest,size_t n , std::string &data
         exit(1);
     return(str.find('}',n) + 1);
 }
-size_t pars::which_one1(size_t n,std::string data,loc location)
+size_t pars::which_one1(size_t n,std::string data,loc &location)
 {
-    if(data.find("root") == n)
+    if(data.find("root",n) == n)
     {
         return(root(data,n,location.root));
     }
-     else if(data.find("index") == n)
+     else if(data.find("index",n) == n)
     {
-        return(index(data,n,location.index));   
+        return(index(data,n,location.index)); 
     }
-    else if(data.find("allow_methods") == n)
+    else if(data.find("allow_methods",n) == n)
     {
         return(allow_methods(data,n,location.allow_methods));   
     }
-    else if(data.find("return") == n)
+    else if(data.find("return",n) == n)
     {
         return(s_return(data,n,location.s_return));   
     }
-    else if (data.find("alias") == n)
+    else if (data.find("alias",n) == n)
     {
         return(alias(data,n,location.alias));   
     }
-    else if (data.find("autoindex") == n)
+    else if (data.find("autoindex",n) == n)
     {
         return(autoindex(data,n,location.autoindex));   
     }

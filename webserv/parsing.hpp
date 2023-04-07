@@ -62,7 +62,7 @@ class pars{
     size_t allow_methods(std::string &src,size_t n,std::string &str);
     size_t check_between(size_t start,size_t end);
     size_t check_server_data(size_t n);
-    size_t which_one1(size_t n,std::string data,loc location);
+    size_t which_one1(size_t n,std::string data,loc &location);
     size_t s_return(std::string &src,size_t n,std::string &str);
     size_t alias(std::string &src,size_t n,std::string &str);
     size_t autoindex(std::string &src,size_t n,std::string &str);

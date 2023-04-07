@@ -3,6 +3,7 @@
 void pars::fill_request(std::string str)
 {
     std::string data = str.substr(0,str.find("\r\n"));
+    std::cout << data<< std::endl;
     std::stringstream s(data);
     int count = 1;
     // for(int i = 0;data[i];i++)
@@ -10,10 +11,8 @@ void pars::fill_request(std::string str)
     //     if(data[i] == ' ')
     //         count++;
     // }
-    if(data[data.find("/")+1] != ' ')
+    if(data[data.find("/")+1] != ' ' && data.find("/favicon.ico") == std::string::npos)
     {
-
-        std::cout << data << std::endl;
         s >> r_data.method;
         s >> r_data.url;
     }

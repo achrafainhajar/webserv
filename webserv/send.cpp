@@ -71,4 +71,5 @@ void pars::respons(int client_sock)
 {
     check_location();
     send(client_sock, r_data.response_buf ,strlen(r_data.response_buf), 0);
+    r_data.url = "";
 }

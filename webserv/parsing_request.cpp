@@ -11,7 +11,7 @@ void pars::fill_request(std::string str)
     //     if(data[i] == ' ')
     //         count++;
     // }
-    if(data[data.find("/")+1] != ' ' && data.find("/favicon.ico") == std::string::npos)
+    if(data[data.find("/")+1] != ' ' && data.find("/cover.css") == std::string::npos)
     {
         s >> r_data.method;
         s >> r_data.url;

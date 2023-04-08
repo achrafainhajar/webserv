@@ -43,6 +43,7 @@ class request{
 };
 class pars{
     public:
+    int sockfd;
     std::ifstream inputfile;
     std::string f_data;
     std::vector<data> s_data; 
@@ -74,6 +75,7 @@ class pars{
     void res_location(std::vector<loc>::iterator it);
     void check_location(void);
     void respons_404(void);
+    void respons_201(std::string index);
 };  
 size_t whitespaces(std::string str,size_t n);
 size_t fill_data(std::string str,std::string dest,size_t n , std::string &data);

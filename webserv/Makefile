@@ -1,4 +1,4 @@
-CC = c++ -Wall -Wextra -Werror -std=c++98
+CC = c++ 
 
 SRC =  main.cpp parsing.cpp parsing1.cpp send.cpp parsing2.cpp parsing_request.cpp
 

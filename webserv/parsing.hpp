@@ -48,6 +48,7 @@ class pars{
     std::string f_data;
     std::vector<data> s_data; 
     request r_data;
+    int count;
 
     pars(char *str);
     void check_data();
@@ -76,6 +77,14 @@ class pars{
     void check_location(void);
     void respons_404(void);
     void respons_201(std::string index);
+    void respons_204(void);
+    void respons_301(void);
+    void respons_400(void);
+    void respons_403(void);
+    void respons_405(void);
+    void respons_413(void);
+    void respons_500(void);
+    void respons_504(void);
 };  
 size_t whitespaces(std::string str,size_t n);
 size_t fill_data(std::string str,std::string dest,size_t n , std::string &data);

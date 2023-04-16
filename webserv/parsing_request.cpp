@@ -5,7 +5,6 @@ void pars::fill_request(std::string str)
     std::string data = str.substr(0,str.find("\r\n"));
     std::cout << data<< std::endl;
     std::stringstream s(data);
-    int count = 1;
     // for(int i = 0;data[i];i++)
     // {
     //     if(data[i] == ' ')
@@ -25,6 +24,4 @@ void pars::fill_request(std::string str)
        if(word == r_data.method)
             count = 1;
     }
-    if(count == 0)
-        exit(1);
 }

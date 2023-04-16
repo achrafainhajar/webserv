@@ -1,6 +1,6 @@
 CC = c++ 
 
-SRC =  main.cpp parsing.cpp parsing1.cpp send.cpp parsing2.cpp parsing_request.cpp
+SRC =  main.cpp parsing.cpp error_codes.cpp parsing1.cpp send.cpp parsing2.cpp parsing_request.cpp
 
 NAME = webserv
 

@@ -27,11 +27,16 @@ void Request::request_append(const char *str,int length)
             }
             fill_header();
         }
-        /*else if(k > 0 && length > 0)
+        else if(k < 0 && length >= 0)
+        {
             body.write(str,length);
-        len = len + length;
-        if(len == content_length)
-            read = true;*/
+            len = len + length;
+        }
+        if(len == content_length && k > 0)
+        {
+            exit(0);
+           read = true;
+        }
 }
 void        Request::parse_header()
 {
@@ -51,33 +56,38 @@ void        Request::parse_header()
     }
     if(status == true)
     {
-        std::map<std::string, std::string> ::iterator it = header.find("Content-Length:");
+        std::map<std::string, std::string> ::iterator it = header.find("Content-Length");
         if(it != header.end())
-            content_length = std::atoi(header["Content-Length:"].c_str());
+        {
+            content_length = std::atoi(header["Content-Length"].c_str());
+        }
         else
         {
-            std::map<std::string, std::string>::iterator it = header.find("Transfer-Encoding:");
+            std::map<std::string, std::string>::iterator it = header.find("Transfer-Encoding");
             if(it != header.end())
             {
-                if(header["Transfer-Encoding:"] == " chunked")
+                if(header["Transfer-Encoding"] == " chunked")
                     k = -2;
             }
             else
             {
-                std::map<std::string, std::string>::iterator it = header.find("Connection:");
+                std::map<std::string, std::string>::iterator it = header.find("Connection");
                 if(it != header.end())
-                    if(header["Connection:"]== " close")
+                    if(header["Connection"]== " close")
                         k = -1;
             }
         }
     }
     if(status == true)
-    {
-        while(std::getline(header_stream, line))
+    {    while(std::getline(header_stream, line))
         {
             len = line.size() + len;
             body.write(line.c_str(),line.size());
         }
+        len = line.size() + len;
+        std::cout << request<< "sss" <<content_length << 's'<< len << std::endl;
+        if(len == content_length)
+            exit(0);
     }
 }
 void Request::fill_header()

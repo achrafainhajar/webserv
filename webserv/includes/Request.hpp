@@ -4,7 +4,7 @@
 #include <cstdlib>
 class Request
 {
-    private :
+    public:
         int                                 k;
         std::string                         request;
         std::string                         method;

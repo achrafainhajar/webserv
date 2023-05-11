@@ -104,28 +104,24 @@ void Response::check_location(pars parsing)
 }
 void Response::respons_201(std::string index)
 {
-    index = "";/*
     std::ostringstream response;
     std::string line;
     if(!html_file.is_open())
     {
-        std::map<std::string, std::string>  header;
         glen = 0;
-        body = r_data.getBody();
-        header = r_data.getheader();
         html_file.open(index.c_str(), std::ios::out | std::ios::binary);
-        html_file.seekg (0, html_file.end);
-        length = 
-        html_file.seekg (0, html_file.beg);
+        std::map<std::string, std::string>::iterator it = r_data.header.find("Content-Length:");
+        length = std::atoi(it->second.c_str());
     }
     if(glen < length)
     {
+        r_data.body.read(response_buf2, 6000);
+        len = html_file.gcount();
+        html_file.write(response_buf2, len);
+        glen = len + glen;
         len = 0;
-        body.read(response_buf2, 65536);
-        html_file.write(response_buf2, 65536);
-        glen = length + glen;
     }
-    else
+    if(glen >= length)
     {
         response << "HTTP/1.1 201 OK\r\n";
         response << "Content-Type: text/html\r\n";
@@ -140,7 +136,6 @@ void Response::respons_201(std::string index)
         c = -3;
         html_file.close();
     }
-    */
 }
 void Response::respons_204()
 {
@@ -188,7 +183,6 @@ void Response::respons_200(std::string index)
         response << "HTTP/1.1 200 OK\r\n";
         response << "Content-Type: "<< get_f_type(index) <<"\r\n";
         response << "Content-Length: " << length << "\r\n";
-        response << "Connection: close"<< "\r\n";
         response << "\r\n";
         std::string str = response.str();
         str.copy(response_buf2,str.length());
@@ -238,13 +232,17 @@ void Response::respons(int client_sock,pars parsing)
         }
         return;
     }
-    len = 0;
-    c = 1;
+    if(c != -4)
+    {
+        len = 0;
+        c = 1;
+    }
     std::cout << r_data.getPath() << std::endl;
-    if(r_data.getMethod() == "GET")
+    if(r_data.getMethod() == "GET" && c != -4)
         check_location(parsing);
     else if(r_data.getMethod() == "POST")
     {
+        exit(0);
         respons_201("src/parsing/index.html");
     }
     int i;
@@ -259,6 +257,7 @@ void Response::respons(int client_sock,pars parsing)
         {
             if(i < len)
             {
+                std::cout << "t" <<std::endl;
                 remaining = std::string(response_buf2 + i, len -i);
                 len = len - i;
                 std::cout << i << "----"<< len << "-----"<< glen<< std::endl;

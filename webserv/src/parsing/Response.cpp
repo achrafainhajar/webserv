@@ -103,39 +103,18 @@ void Response::check_location(pars parsing)
     respons_200(parsing.s_data[0].index);
 }
 void Response::respons_201(std::string index)
-{
-    std::ostringstream response;
-    std::string line;
-    if(!html_file.is_open())
-    {
-        glen = 0;
-        html_file.open(index.c_str(), std::ios::out | std::ios::binary);
-        std::map<std::string, std::string>::iterator it = r_data.header.find("Content-Length:");
-        length = std::atoi(it->second.c_str());
-    }
-    if(glen < length)
-    {
-        r_data.body.read(response_buf2, 6000);
-        len = html_file.gcount();
-        html_file.write(response_buf2, len);
-        glen = len + glen;
-        len = 0;
-    }
-    if(glen >= length)
-    {
+{       index = "";
+        std::ostringstream response;
         response << "HTTP/1.1 201 OK\r\n";
         response << "Content-Type: text/html\r\n";
         response << "Content-Length: 9\r\n";
         response << "\r\n";
-        response<< "File saved";
         std::string str = response.str();
         str.copy(response_buf2,str.length());
         response_buf2[str.length()] = '\0';
         std::cout <<"++++"<<response_buf2 <<"----" <<std::endl;
         len = strlen(response_buf2);
         c = -3;
-        html_file.close();
-    }
 }
 void Response::respons_204()
 {
@@ -242,8 +221,12 @@ void Response::respons(int client_sock,pars parsing)
         check_location(parsing);
     else if(r_data.getMethod() == "POST")
     {
-        exit(0);
-        respons_201("src/parsing/index.html");
+        respons_201("src/parsing/index1.html");
+        int l = send(client_sock, response_buf2 ,len, 0);
+        if(l < 0)
+            exit(1);
+        c = -1;
+        return;
     }
     int i;
     if(len > 0 || c == -3)
@@ -253,18 +236,18 @@ void Response::respons(int client_sock,pars parsing)
        {
             c = -4;
        }
-        else
-        {
-            if(i < len)
-            {
-                std::cout << "t" <<std::endl;
-                remaining = std::string(response_buf2 + i, len -i);
-                len = len - i;
-                std::cout << i << "----"<< len << "-----"<< glen<< std::endl;
-            }
-            glen = i + glen;
-            c = 1;
-        }
+       else
+       {
+           if(i < len)
+           {
+               std::cout << "t" <<std::endl;
+               remaining = std::string(response_buf2 + i, len -i);
+               len = len - i;
+               std::cout << i << "----"<< len << "-----"<< glen<< std::endl;
+           }
+           glen = i + glen;
+           c = 1;
+       }
     }
     if(length <= glen)
     {

@@ -133,6 +133,7 @@ void Server::start(pars &parsing)
 						maxFds = clientSocket;
 					Client c(clientSocket);
 					_clients.push_back(c);
+					break ;
 				}
 				else if (FD_ISSET(i, &readFds))
 				{
@@ -151,7 +152,7 @@ void Server::start(pars &parsing)
 						isClient(i)	&& close(i);
 					}
 					it->res_data.r_data.request_append(buffer,rec);
-					if (it->res_data.r_data.getread() == true ||( it->res_data.r_data.getk() == -1 && rec == 0))
+					if (it->res_data.r_data.getread() == true ||( it->res_data.r_data.getk() == 2 && rec == 0))
 					{
 						std::cout << "hello im here in cond " << std::endl;
 						FD_CLR(i, &backupRead); 

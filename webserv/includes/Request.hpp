@@ -27,6 +27,7 @@ class Request
         std::string getPath() const;
         std::string getVersion() const;
         std::fstream &getBody();
+        void pars_chunked_body();
         bool getread();
         int  getk();
 };

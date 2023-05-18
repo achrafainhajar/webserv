@@ -249,57 +249,48 @@ void Response::check_request(std::vector<Config>& parsing)
         handle_delete(parsing);
     }
 }
-bool Response::check_path(std::vector<Config>& parsing)
-{
-    // int c = 0;
-    // std::string root;
-    // std::string loc = "";
-    // if(r_data.getPath() != "")
-    // {   
-    //     std::vector<Location>::iterator it;
-    //     for (it = parsing[0].getLocations().begin(); it != parsing[0].getLocations().end(); it++)
-    //     {
-    //         if(r_data.getPath().find(it->getLocationPath()) == 0)
-    //         {
-    //             loc = it->getLocationPath();
-    //             c = 1;
-    //             break;
-    //         }
-    //     }
-    //     if(c == 0)
-    //     {
-    //         r_data.status_value = 404;
-    //         return false;
-    //     }
-    //     root = it->getRoot();
-    // }
-    // else
-    // {
-    //     root = parsing[0].getRoot();
-    // }
-    // if (!root.empty() && root.back() == '/')
-    //     root.pop_back();
-    // root.append(r_data.path.substr(loc.size()));
-    // struct stat buf;
-    // std::cout << root << std::endl;
-    // if (stat(root.c_str(), &buf) != 0) {
-    //     r_data.status_value = 404;
-    //     return false;
-    // }
-    // if (S_ISREG(buf.st_mode))
-    // {
+#include <sys/stat.h>
 
-    // }
-    // else if (S_ISDIR(buf.st_mode))
-    // {
-       
-    // }
-    (void) parsing;
-    return true;
+
+void Response::check_path(Config &serverConfig) {
+    struct stat sb;
+    std::string path;
+    std::vector<Location> locations = serverConfig.getLocations();
+
+    for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
+        Location location = *it;
+        if (r_data.getPath().find(location.getLocationPath()) == std::string::npos)
+            continue;
+        std::string targetPath = location.getRoot() + r_data.getPath().substr(location.getLocationPath().size());
+        if (stat(targetPath.c_str(), &sb) == 0) {
+            if (S_ISDIR(sb.st_mode)) {
+                if (location.getAutoindex() == "on" && location.getIndex().empty())
+                    path = targetPath;
+                else
+                    path = targetPath + "/" + location.getIndex();
+            } else {
+                path = targetPath;
+            }
+            r_data.status_value = (access(path.c_str(), F_OK) != -1) ? 0 : 404;
+            return;
+        }
+    }
+    std::string targetPath = serverConfig.getRoot() + r_data.getPath();
+    if (stat(targetPath.c_str(), &sb) == 0) {
+        path = (S_ISDIR(sb.st_mode)) ? (targetPath + "/" + serverConfig.getIndex()) : targetPath;
+        r_data.status_value = (access(path.c_str(), F_OK) != -1) ? 0 : 404;
+    } else {
+        r_data.status_value = 404;
+    }
 }
+
+
+
 void Response::handle_get(std::vector<Config>& parsing)
 {
-    check_path(parsing);
+    check_path(parsing[0]);
+    if(r_data.status_value == 404)
+        exit(0);
 }
 void Response::handle_post(std::vector<Config>& parsing)
 {

@@ -46,7 +46,7 @@ class Response
         return *this;
     }
     Response(){remaining = "";}
-    bool check_path(std::vector<Config>& parsing);
+    void check_path(Config &serverconfig);
     void handle_get(std::vector<Config>& parsing);
     void handle_post(std::vector<Config>& parsing);
     void handle_delete(std::vector<Config>& parsing);

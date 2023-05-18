@@ -126,6 +126,7 @@ void Location::readLocation(std::ifstream	&file,std::string value, std::string c
 	std::string tmp;
 	std::string l1;
 	std::string cheeck;
+	_locationPath = value;
 	while (!file.eof())
 	{
 		str =  removeLeadingWhitespace(line);

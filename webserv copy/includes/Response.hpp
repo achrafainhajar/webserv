@@ -6,6 +6,7 @@ class Response
 {
     public:
     int sockfd;
+    std::string fullpath;
     std::fstream html_file;
     long glen;
     long length;
@@ -47,9 +48,9 @@ class Response
     }
     Response(){remaining = "";}
     void check_path(Config &serverconfig);
-    void handle_get(std::vector<Config>& parsing);
-    void handle_post(std::vector<Config>& parsing);
-    void handle_delete(std::vector<Config>& parsing);
+    void handle_get(Config &config,Location location);
+    void handle_delete(Config &config,Location location);
+    void handle_post(Config &config,Location location);
     void check_request(std::vector<Config>& parsing);
     void respons(int client_sock,std::vector<Config>& parsing);
     void respons_200(std::string index);

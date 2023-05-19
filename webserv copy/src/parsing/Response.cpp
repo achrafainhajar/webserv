@@ -225,33 +225,115 @@ void Response::respons(int client_sock,std::vector<Config> &parsing)
         html_file.close();
     }
 }
+#include <sys/stat.h>
+void Response::handle_get(Config &config, Location location)
+{
+    (void) config;
+    struct stat sb;
+
+    std::string targetPath = location.getRoot() + r_data.getPath().substr(location.getLocationPath().size());
+
+    if (stat(targetPath.c_str(), &sb) == 0) {
+        if (S_ISDIR(sb.st_mode)) {
+            if (r_data.getPath()[r_data.getPath().size() - 1] != '/') {
+                r_data.status_value = 301;
+                return;
+            }
+            else if (location.getAutoindex() == "on")
+                fullpath = targetPath;  // For auto-indexing
+            else {
+                fullpath = targetPath + "/" + location.getIndex();
+                if (access(fullpath.c_str(), F_OK) == -1)
+                    r_data.status_value = 403;  // No index file and autoindex is off
+                else
+                    r_data.status_value = 200;
+            }
+        } else {
+            fullpath = targetPath;
+            r_data.status_value = (access(fullpath.c_str(), F_OK) != -1) ? 200 : 404;
+        }
+    } else {
+        r_data.status_value = 404;
+    }
+}
+
+
 void Response::check_request(std::vector<Config>& parsing)
 {
-    // else
-    // {
-    //     std::vector<std::string>::iterator ite;
-    //     for(ite = parsing[0].getAllowMethods().begin(); ite != parsing[0].getAllowMethods().end(); ite++)
-    //     {
-    //         if(*ite == r_data.getMethod())
-    //            break;
-    //     }
-    // }
-    if(r_data.getMethod() == "GET")
+    std::vector<Location> locations = parsing[0].getLocations();
+    std::vector<Location>::iterator it;
+
+    for (it = locations.begin(); it != locations.end(); ++it) {
+        Location location = *it;
+        if (r_data.getPath().find(location.getLocationPath()) != std::string::npos)
+            break;
+    }
+
+    if(it == locations.end())
     {
-        handle_get(parsing);
+            // No matching location found, check the server root
+            std::string root = parsing[0].getRoot();
+            std::string targetPath = root + r_data.getPath();
+            struct stat sb;
+
+            if (stat(targetPath.c_str(), &sb) == 0) {
+            if (S_ISDIR(sb.st_mode)) {
+                // Target is a directory. Try to access the index file within it.
+                std::string indexPath = targetPath +'/'+parsing[0].getIndex();
+                if (access(indexPath.c_str(), F_OK) != -1) {
+                    // Index file exists and is accessible
+                    std::cout << indexPath << std::endl;
+                    r_data.status_value = 200;
+                    fullpath = indexPath;
+                } else {
+                    // Index file does not exist or is not accessible
+                    r_data.status_value = 404;
+                }
+            } else {
+                // Target is a file. Try to access it.
+                if (access(targetPath.c_str(), F_OK) != -1) {
+                    // File exists and is accessible
+                    r_data.status_value = 200;
+                    fullpath = targetPath;
+                } else {
+                    // File does not exist or is not accessible
+                    r_data.status_value = 404;
+                }
+            }
+        } else {
+            // Target does not exist
+            r_data.status_value = 404;
+        }
+
+    }
+    
+    if(r_data.getMethod() == "GET" && r_data.status_value == 0)
+    {
+        handle_get(parsing[0],*it);
     }
     else if(r_data.getMethod() == "POST")
     {
-        handle_post(parsing);
+        handle_post(parsing[0],*it);
     }
     else if(r_data.getMethod() == "DELETE")
     {
-        handle_delete(parsing);
+        handle_delete(parsing[0],*it);
     }
+    std::cout << r_data.status_value << std::endl;
+    if(r_data.status_value == 404 || r_data.status_value == 301 || r_data.status_value == 403)
+        exit(0);
 }
-#include <sys/stat.h>
 
-
+void Response::handle_delete(Config &config,Location location)
+{
+    (void) config;
+    (void) location;
+}
+void Response::handle_post(Config &config,Location location)
+{
+    (void) config;
+    (void) location;
+}
 void Response::check_path(Config &serverConfig) {
     struct stat sb;
     std::string path;
@@ -282,21 +364,4 @@ void Response::check_path(Config &serverConfig) {
     } else {
         r_data.status_value = 404;
     }
-}
-
-
-
-void Response::handle_get(std::vector<Config>& parsing)
-{
-    check_path(parsing[0]);
-    if(r_data.status_value == 404)
-        exit(0);
-}
-void Response::handle_post(std::vector<Config>& parsing)
-{
-    (void) parsing;
-}
-void Response::handle_delete(std::vector<Config>& parsing)
-{
-    (void) parsing;
 }

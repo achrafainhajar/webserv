@@ -27,7 +27,6 @@ Location& Location::operator=(const Location& other)
         _cgiPath = other._cgiPath;
         _autoindex = other._autoindex;
         _index = other._index;
-        _allowMethods = other._allowMethods;
         _upload = other._upload;
 		_redirect = other._redirect;
     }

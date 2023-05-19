@@ -21,7 +21,7 @@ void Request::pars_chunked_body(size_t size) {
         std::string type = ite->second.substr(ite->second.find("/") + 1,ite->second.find(";") -1);
         std::string name = "3ar.";
         name += type;
-        body.open(name, std::ios::in | std::ios::out | std::ios::trunc |std::ios::binary); 
+        body.open(name.c_str(), std::ios::in | std::ios::out | std::ios::trunc |std::ios::binary); 
         if(!body.is_open())
         {
             std::cerr << "Error: Could not open file" << std::endl;

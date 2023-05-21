@@ -1,6 +1,8 @@
 #include "../../includes/Response.hpp"
 #include "../../includes/Request.hpp"
 #include "../../includes/parsing.hpp"
+#include <ftw.h>
+#include <iostream>
 #include <sys/stat.h>
 std::string get_f_type(std::string str)
 {
@@ -225,7 +227,6 @@ void Response::respons(int client_sock,std::vector<Config> &parsing)
         html_file.close();
     }
 }
-#include <sys/stat.h>
 void Response::handle_get(Config &config, Location location)
 {
     (void) config;
@@ -271,40 +272,31 @@ void Response::check_request(std::vector<Config>& parsing)
 
     if(it == locations.end())
     {
-            // No matching location found, check the server root
             std::string root = parsing[0].getRoot();
             std::string targetPath = root + r_data.getPath();
             struct stat sb;
 
             if (stat(targetPath.c_str(), &sb) == 0) {
             if (S_ISDIR(sb.st_mode)) {
-                // Target is a directory. Try to access the index file within it.
-                std::string indexPath = targetPath +'/'+parsing[0].getIndex();
+                std::string indexPath = targetPath +'/'+ parsing[0].getIndex();
+                std::cout << indexPath << std::endl;
                 if (access(indexPath.c_str(), F_OK) != -1) {
-                    // Index file exists and is accessible
-                    std::cout << indexPath << std::endl;
                     r_data.status_value = 200;
                     fullpath = indexPath;
                 } else {
-                    // Index file does not exist or is not accessible
                     r_data.status_value = 404;
                 }
             } else {
-                // Target is a file. Try to access it.
                 if (access(targetPath.c_str(), F_OK) != -1) {
-                    // File exists and is accessible
                     r_data.status_value = 200;
                     fullpath = targetPath;
                 } else {
-                    // File does not exist or is not accessible
                     r_data.status_value = 404;
                 }
             }
         } else {
-            // Target does not exist
             r_data.status_value = 404;
         }
-
     }
     
     if(r_data.getMethod() == "GET" && r_data.status_value == 0)
@@ -324,43 +316,131 @@ void Response::check_request(std::vector<Config>& parsing)
         exit(0);
 }
 
+int delete_file(const char* fpath, const struct stat* sb, int typeflag, struct FTW* ftwbuf)
+{
+    (void) sb;
+    (void) typeflag;
+    (void) ftwbuf;
+    if (remove(fpath) == 0) {
+        std::cout << "Deleted file: " << fpath << std::endl;
+        return 0;
+    } else {
+        std::cerr << "Failed to delete file: " << fpath << std::endl;
+        return -1; // Return -1 to stop traversal if desired
+    }
+}
+
+
+
+int delete_directory_recursive(const std::string& directoryPath)
+{
+    int flags = FTW_DEPTH | FTW_PHYS; // Traverse directories in post-order, and don't follow symbolic links
+
+    int result = nftw(directoryPath.c_str(), delete_file, 20, flags);
+    if (result == -1) {
+        std::cerr << "Failed to traverse directory: " << directoryPath << std::endl;
+        return 500; // Internal Server Error
+    }
+
+    // Delete the directory itself
+    if (rmdir(directoryPath.c_str()) == 0) {
+        std::cout << "Deleted directory: " << directoryPath << std::endl;
+        return 204; // No Content
+    } else {
+        std::cerr << "Failed to delete directory: " << directoryPath << std::endl;
+        return 500; // Internal Server Error
+    }
+}
+
 void Response::handle_delete(Config &config,Location location)
 {
     (void) config;
     (void) location;
+    struct stat sb;
+    std::string targetPath;
+
+    if(fullpath.empty())
+        targetPath = location.getRoot() + r_data.getPath().substr(location.getLocationPath().size());
+
+    else
+        targetPath = fullpath;
+    std::cout << targetPath << std::endl;
+    if (stat(targetPath.c_str(), &sb) == 0) {
+        if (S_ISDIR(sb.st_mode)) {
+            if (r_data.getPath()[r_data.getPath().size() - 1] != '/') {
+                r_data.status_value = 409;
+                return;
+            }
+            if(!location.getCgiPath().empty())
+            {
+                if(location.getIndex().empty())
+                {
+                    r_data.status_value = 409;
+                    return;
+                }
+                // cgi code
+            }
+            else {
+                r_data.status_value = delete_directory_recursive(targetPath.c_str());
+            }
+        } else {
+            fullpath = targetPath;
+             if(!location.getCgiPath().empty())
+             {
+                // cgi code
+             }
+             else
+             {
+                 if (remove(targetPath.c_str()) == 0)
+                    r_data.status_value =  204;
+                else
+                    r_data.status_value =  403;     
+             }
+        }
+    } else {
+        r_data.status_value = 404;
+    }
 }
 void Response::handle_post(Config &config,Location location)
 {
     (void) config;
     (void) location;
-}
-void Response::check_path(Config &serverConfig) {
-    struct stat sb;
-    std::string path;
-    std::vector<Location> locations = serverConfig.getLocations();
 
-    for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
-        Location location = *it;
-        if (r_data.getPath().find(location.getLocationPath()) == std::string::npos)
-            continue;
-        std::string targetPath = location.getRoot() + r_data.getPath().substr(location.getLocationPath().size());
-        if (stat(targetPath.c_str(), &sb) == 0) {
-            if (S_ISDIR(sb.st_mode)) {
-                if (location.getAutoindex() == "on" && location.getIndex().empty())
-                    path = targetPath;
-                else
-                    path = targetPath + "/" + location.getIndex();
-            } else {
-                path = targetPath;
-            }
-            r_data.status_value = (access(path.c_str(), F_OK) != -1) ? 0 : 404;
-            return;
-        }
+    if(!location.getUpload().empty()) // la kan fih upload sf rah good  201
+    {
+        r_data.status_value = 201;
+        return;
     }
-    std::string targetPath = serverConfig.getRoot() + r_data.getPath();
+
+    struct stat sb;
+
+    std::string targetPath = location.getRoot() + r_data.getPath().substr(location.getLocationPath().size());
+
     if (stat(targetPath.c_str(), &sb) == 0) {
-        path = (S_ISDIR(sb.st_mode)) ? (targetPath + "/" + serverConfig.getIndex()) : targetPath;
-        r_data.status_value = (access(path.c_str(), F_OK) != -1) ? 0 : 404;
+        if (S_ISDIR(sb.st_mode)) {
+            if (r_data.getPath()[r_data.getPath().size() - 1] != '/') {
+                r_data.status_value = 301;
+                return;
+            }
+            else {
+                fullpath = targetPath + "/" + location.getIndex();
+                if (access(fullpath.c_str(), F_OK) == -1)
+                    r_data.status_value = 403;  // No index file and autoindex is off
+                else
+                {
+                    if(location.getCgiPath().empty())
+                        r_data.status_value = 403;
+                    else
+                         r_data.status_value = 201; // Cgi location
+                }
+            }
+        } else {
+            fullpath = targetPath;
+             if(location.getCgiPath().empty())
+                r_data.status_value = 403;
+            else
+                 r_data.status_value = 201;
+        }
     } else {
         r_data.status_value = 404;
     }

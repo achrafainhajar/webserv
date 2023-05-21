@@ -138,10 +138,10 @@ void Server::start(std::vector<Config> &parsing)
 				{
 					std::list<Client>::iterator it;
 					for (it = _clients.begin(); it != _clients.end(); ++it)
-   					{
-   					    if(it->_clientFd == i)
+					{
+					    if(it->_clientFd == i)
 							break;
-   					}
+					}
 					char buffer[RECV_SIZE] = {0};
 					int rec = recv(i, buffer, RECV_SIZE - 1, 0);
 					if (rec < 0)

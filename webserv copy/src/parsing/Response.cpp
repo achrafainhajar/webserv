@@ -78,27 +78,6 @@ std::string get_f_type(std::string str)
 
 void Response::check_location(std::vector<Config> &parsing)
 {
-    int c = 0;
-    if(r_data.getPath() != "")
-    {
-        std::cout <<"adadada"<< std::endl;
-         std::vector<Location>::iterator it;
-        for (it = parsing[0].getLocations().begin(); it != parsing[0].getLocations().end(); it++)
-        {
-            if(it->getLocationPath() == r_data.getPath() || r_data.getPath() == it->getRedirect())
-            {
-                c = 1;
-                break;
-            }
-        }
-        if(c == 0)
-        {
-            respons_404();
-            return;
-        }
-        respons_200(it->getIndex());
-        return;
-    }
     respons_200(parsing[0].getIndex());
 }
 void Response::respons_201(std::string index)
@@ -142,19 +121,27 @@ void Response::respons_301()
     response << "Content-Length: 0\r\n";
     response << "Connection: close\r\n";
     response << "\r\n";
-    std::string response_str = response.str();
-    char* response_buf = new char[response_str.size() + 1];
-    std::copy(response_str.begin(), response_str.end(), response_buf);
-    response_buf[response_str.size()] = '\0';
-    response_buf1 = response_buf;
+    std::string str = response.str();
+    str.copy(response_buf2, str.length());
+    response_buf2[str.length()] = '\0';
+    len = strlen(response_buf2);
 }
 void Response::respons_200(std::string index)
 {
      std::stringstream response;
     std::string line;
+    int i = 0;
     if(!html_file.is_open())
     {
         glen = 0;
+                std::cout << index << std::endl;
+        if(index[i] == '.')
+        {
+            while(index[i] == '.' || index[i] == '/')
+                i++;
+        }
+        index = index.substr(i);
+
         html_file.open(index.c_str(), std::ios::in | std::ios::binary);
         html_file.seekg (0, html_file.end);
         length = html_file.tellg();
@@ -176,16 +163,41 @@ void Response::respons_200(std::string index)
         std::cout << len<< "---" << glen <<"----"<<length << std::endl;
     }
 }
+int Response::check_status()
+{
+    if(r_data.status_value == 301)
+        respons_301();
+    else if(r_data.status_value == 404)
+        respons_404();
+    else if(r_data.status_value == 400)
+        respons_400();
+    else if(r_data.status_value == 403)
+        respons_403();
+    else if(r_data.status_value == 405)
+        respons_405();
+    else if(r_data.status_value == 413)
+        respons_413();
+    else if(r_data.status_value == 500)
+        respons_500();
+    else if(r_data.status_value == 500)
+        respons_500();
+    else
+        return 0;
+    return 1;
+}
 void Response::respons(int client_sock,std::vector<Config> &parsing)
 {
+    (void)parsing;
     if(c != -4 && remaining.size() == 0)
     {
         len = 0;
         c = 1;
     }
     std::cout << r_data.getPath() << std::endl;
-    if(r_data.getMethod() == "GET" && c != -4 && remaining.size() == 0)
-        check_location(parsing);
+    if(check_status() == 1)
+        c = -1;
+    else if(r_data.getMethod() == "GET" && c != -4 && remaining.size() == 0)
+        respons_200(fullpath);
     else if(r_data.getMethod() == "POST")
     {
         respons_201("src/parsing/index1.html");
@@ -272,34 +284,37 @@ void Response::check_request(std::vector<Config>& parsing)
 
     if(it == locations.end())
     {
-            std::string root = parsing[0].getRoot();
-            std::string targetPath = root + r_data.getPath();
-            struct stat sb;
+        std::string root = parsing[0].getRoot();
+        std::string targetPath = root + r_data.getPath();
+        struct stat sb;
 
-            if (stat(targetPath.c_str(), &sb) == 0) {
-            if (S_ISDIR(sb.st_mode)) {
-                std::string indexPath = targetPath +'/'+ parsing[0].getIndex();
-                std::cout << indexPath << std::endl;
-                if (access(indexPath.c_str(), F_OK) != -1) {
-                    r_data.status_value = 200;
-                    fullpath = indexPath;
-                } else {
-                    r_data.status_value = 404;
-                }
+        if (stat(targetPath.c_str(), &sb) == 0) {
+        if (S_ISDIR(sb.st_mode)) {
+            std::string indexPath = targetPath +'/'+ parsing[0].getIndex();
+            std::cout << indexPath << std::endl;
+            if (access(indexPath.c_str(), F_OK) != -1) {
+                r_data.status_value = 200;
+                fullpath = indexPath;
+                std::cout << targetPath << std::endl;
             } else {
-                if (access(targetPath.c_str(), F_OK) != -1) {
-                    r_data.status_value = 200;
-                    fullpath = targetPath;
-                } else {
-                    r_data.status_value = 404;
-                }
+                r_data.status_value = 404;
             }
+        } else {
+            if (access(targetPath.c_str(), F_OK) != -1) {
+                r_data.status_value = 200;
+                fullpath = targetPath;
+                std::cout << fullpath << std::endl;
+            } else {
+                r_data.status_value = 404;
+            }
+        }
         } else {
             r_data.status_value = 404;
         }
     }
-    
-    if(r_data.getMethod() == "GET" && r_data.status_value == 0)
+    if(r_data.status_value > 0)
+        return;
+    if(r_data.getMethod() == "GET")
     {
         handle_get(parsing[0],*it);
     }
@@ -312,8 +327,6 @@ void Response::check_request(std::vector<Config>& parsing)
         handle_delete(parsing[0],*it);
     }
     std::cout << r_data.status_value << std::endl;
-    if(r_data.status_value == 404 || r_data.status_value == 301 || r_data.status_value == 403)
-        exit(0);
 }
 
 int delete_file(const char* fpath, const struct stat* sb, int typeflag, struct FTW* ftwbuf)
@@ -326,7 +339,7 @@ int delete_file(const char* fpath, const struct stat* sb, int typeflag, struct F
         return 0;
     } else {
         std::cerr << "Failed to delete file: " << fpath << std::endl;
-        return -1; // Return -1 to stop traversal if desired
+        return -1;
     }
 }
 
@@ -334,21 +347,18 @@ int delete_file(const char* fpath, const struct stat* sb, int typeflag, struct F
 
 int delete_directory_recursive(const std::string& directoryPath)
 {
-    int flags = FTW_DEPTH | FTW_PHYS; // Traverse directories in post-order, and don't follow symbolic links
+    int flags = FTW_DEPTH | FTW_PHYS;
 
     int result = nftw(directoryPath.c_str(), delete_file, 20, flags);
     if (result == -1) {
-        std::cerr << "Failed to traverse directory: " << directoryPath << std::endl;
-        return 500; // Internal Server Error
+        return 500;
     }
 
     // Delete the directory itself
     if (rmdir(directoryPath.c_str()) == 0) {
-        std::cout << "Deleted directory: " << directoryPath << std::endl;
-        return 204; // No Content
+        return 204;
     } else {
-        std::cerr << "Failed to delete directory: " << directoryPath << std::endl;
-        return 500; // Internal Server Error
+        return 500;
     }
 }
 

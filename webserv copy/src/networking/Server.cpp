@@ -167,7 +167,8 @@ void Server::start(std::vector<Config> &parsing)
 							break;
    					}
 					std::cout << "im here in response " << std::endl;
-					it->res_data.check_request(parsing);
+					if(it->res_data.r_data.status_value == 0)
+						it->res_data.check_request(parsing);
 					it->res_data.respons(i,parsing);
 					if(it->res_data.c <= 0)
 					{

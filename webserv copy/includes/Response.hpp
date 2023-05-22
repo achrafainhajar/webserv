@@ -47,6 +47,7 @@ class Response
         return *this;
     }
     Response(){remaining = "";}
+    int check_status();
     void check_path(Config &serverconfig);
     void handle_get(Config &config,Location location);
     void handle_delete(Config &config,Location location);

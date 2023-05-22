@@ -7,6 +7,7 @@ void Request::pars_chunked_body(size_t size) {
     {
         return;
     }
+    
     bodyStart += 4;
     std::string data = request.substr(bodyStart);
     if(size < data.size())
@@ -15,7 +16,7 @@ void Request::pars_chunked_body(size_t size) {
         read = true;
         return;
     }
-    std::map<std::string, std::string> ::iterator ite = header.find("Content-Type");
+    std::map<std::string, std::string>::iterator ite = header.find("Content-Type");
     if(ite != header.end())
     {
         std::string type = ite->second.substr(ite->second.find("/") + 1,ite->second.find(";") -1);

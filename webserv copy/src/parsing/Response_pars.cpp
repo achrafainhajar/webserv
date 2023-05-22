@@ -5,18 +5,18 @@
 #include <iostream>
 #include <sys/stat.h>
 
-void Response::handle_get(Config &config, Location location)
+void Request::handle_get(Config &config, Location location)
 {
     (void) config;
     struct stat sb;
 
-    std::string targetPath = location.getRoot() + r_data.getPath().substr(location.getLocationPath().size());
+    std::string targetPath = location.getRoot() + getPath().substr(location.getLocationPath().size());
 
     if (stat(targetPath.c_str(), &sb) == 0) {
         if (S_ISDIR(sb.st_mode)) {
-            if (r_data.getPath()[r_data.getPath().size() - 1] != '/') {
-                r_data.status_value = 301;
-                fullpath = r_data.getPath() + '/';
+            if (getPath()[getPath().size() - 1] != '/') {
+                status_value = 301;
+                fullpath = getPath() + '/';
                 return;
             }
             else if (location.getAutoindex() == "on")
@@ -24,35 +24,35 @@ void Response::handle_get(Config &config, Location location)
             else {
                 fullpath = targetPath + "/" + location.getIndex();
                 if (access(fullpath.c_str(), F_OK) == -1)
-                    r_data.status_value = 403;  // No index file and autoindex is off
+                    status_value = 403;  // No index file and autoindex is off
                 else
-                    r_data.status_value = 200;
+                    status_value = 200;
             }
         } else {
             fullpath = targetPath;
-            r_data.status_value = (access(fullpath.c_str(), F_OK) != -1) ? 200 : 404;
+            status_value = (access(fullpath.c_str(), F_OK) != -1) ? 200 : 404;
         }
     } else {
-        r_data.status_value = 404;
+        status_value = 404;
     }
 }
 
 
-void Response::check_request(std::vector<Config>& parsing)
+void Request::check_request(std::vector<Config>& parsing)
 {
     std::vector<Location> locations = parsing[0].getLocations();
     std::vector<Location>::iterator it;
 
     for (it = locations.begin(); it != locations.end(); ++it) {
         Location location = *it;
-        if (r_data.getPath().find(location.getLocationPath()) != std::string::npos)
+        if (getPath().find(location.getLocationPath()) != std::string::npos)
             break;
     }
 
     if(it == locations.end())
     {
         std::string root = parsing[0].getRoot();
-        std::string targetPath = root + r_data.getPath();
+        std::string targetPath = root + getPath();
         struct stat sb;
 
         if (stat(targetPath.c_str(), &sb) == 0) {
@@ -60,40 +60,40 @@ void Response::check_request(std::vector<Config>& parsing)
             std::string indexPath = targetPath +'/'+ parsing[0].getIndex();
             std::cout << indexPath << std::endl;
             if (access(indexPath.c_str(), F_OK) != -1) {
-                r_data.status_value = 200;
+                status_value = 200;
                 fullpath = indexPath;
                 std::cout << targetPath << std::endl;
             } else {
-                r_data.status_value = 404;
+                status_value = 404;
             }
         } else {
             if (access(targetPath.c_str(), F_OK) != -1) {
-                r_data.status_value = 200;
+                status_value = 200;
                 fullpath = targetPath;
                 std::cout << fullpath << std::endl;
             } else {
-                r_data.status_value = 404;
+                status_value = 404;
             }
         }
         } else {
-            r_data.status_value = 404;
+            status_value = 404;
         }
     }
-    if(r_data.status_value > 0)
+    if(status_value > 0)
         return;
-    if(r_data.getMethod() == "GET")
+    if(getMethod() == "GET")
     {
         handle_get(parsing[0],*it);
     }
-    else if(r_data.getMethod() == "POST")
+    else if(getMethod() == "POST")
     {
         handle_post(parsing[0],*it);
     }
-    else if(r_data.getMethod() == "DELETE")
+    else if(getMethod() == "DELETE")
     {
         handle_delete(parsing[0],*it);
     }
-    std::cout << r_data.status_value << std::endl;
+    std::cout << status_value << std::endl;
 }
 
 int delete_file(const char* fpath, const struct stat* sb, int typeflag, struct FTW* ftwbuf)
@@ -129,7 +129,7 @@ int delete_directory_recursive(const std::string& directoryPath)
     }
 }
 
-void Response::handle_delete(Config &config,Location location)
+void Request::handle_delete(Config &config,Location location)
 {
     (void) config;
     (void) location;
@@ -137,28 +137,28 @@ void Response::handle_delete(Config &config,Location location)
     std::string targetPath;
 
     if(fullpath.empty())
-        targetPath = location.getRoot() + r_data.getPath().substr(location.getLocationPath().size());
+        targetPath = location.getRoot() + getPath().substr(location.getLocationPath().size());
 
     else
         targetPath = fullpath;
     std::cout << targetPath << std::endl;
     if (stat(targetPath.c_str(), &sb) == 0) {
         if (S_ISDIR(sb.st_mode)) {
-            if (r_data.getPath()[r_data.getPath().size() - 1] != '/') {
-                r_data.status_value = 409;
+            if (getPath()[getPath().size() - 1] != '/') {
+                status_value = 409;
                 return;
             }
             if(!location.getCgiPath().empty())
             {
                 if(location.getIndex().empty())
                 {
-                    r_data.status_value = 409;
+                    status_value = 409;
                     return;
                 }
                 // cgi code
             }
             else {
-                r_data.status_value = delete_directory_recursive(targetPath.c_str());
+                status_value = delete_directory_recursive(targetPath.c_str());
             }
         } else {
             fullpath = targetPath;
@@ -169,57 +169,58 @@ void Response::handle_delete(Config &config,Location location)
              else
              {
                  if (remove(targetPath.c_str()) == 0)
-                    r_data.status_value =  204;
+                    status_value =  204;
                 else
-                    r_data.status_value =  403;     
+                    status_value =  403;     
              }
         }
     } else {
-        r_data.status_value = 404;
+        status_value = 404;
     }
 }
-void Response::handle_post(Config &config,Location location)
+void Request::handle_post(Config &config,Location location)
 {
     (void) config;
     (void) location;
 
     if(!location.getUpload().empty()) // la kan fih upload sf rah good  201
     {
-        r_data.status_value = 201;
+        status_value = 201;
+        fullpath = location.getUpload() + '/';
         return;
     }
 
     struct stat sb;
 
-    std::string targetPath = location.getRoot() + r_data.getPath().substr(location.getLocationPath().size());
+    std::string targetPath = location.getRoot() + getPath().substr(location.getLocationPath().size());
 
     if (stat(targetPath.c_str(), &sb) == 0) {
         if (S_ISDIR(sb.st_mode)) {
-            if (r_data.getPath()[r_data.getPath().size() - 1] != '/') {
-                r_data.status_value = 301;
-                fullpath = r_data.getPath() + '/';
+            if (getPath()[getPath().size() - 1] != '/') {
+                status_value = 301;
+                fullpath = getPath() + '/';
                 return;
             }
             else {
                 fullpath = targetPath + "/" + location.getIndex();
                 if (access(fullpath.c_str(), F_OK) == -1)
-                    r_data.status_value = 403;  // No index file and autoindex is off
+                    status_value = 403;  // No index file and autoindex is off
                 else
                 {
                     if(location.getCgiPath().empty())
-                        r_data.status_value = 403;
+                        status_value = 403;
                     else
-                         r_data.status_value = 201; // Cgi location
+                         status_value = 201; // Cgi location
                 }
             }
         } else {
             fullpath = targetPath;
              if(location.getCgiPath().empty())
-                r_data.status_value = 403;
+                status_value = 403;
             else
-                 r_data.status_value = 201;
+                 status_value = 201;
         }
     } else {
-        r_data.status_value = 404;
+        status_value = 404;
     }
 }

@@ -7,7 +7,7 @@ void Request::pars_chunked_body(size_t size) {
     {
         return;
     }
-    
+
     bodyStart += 4;
     std::string data = request.substr(bodyStart);
     if(size < data.size())
@@ -20,7 +20,7 @@ void Request::pars_chunked_body(size_t size) {
     if(ite != header.end())
     {
         std::string type = ite->second.substr(ite->second.find("/") + 1,ite->second.find(";") -1);
-        std::string name = "3ar.";
+        std::string name = fullpath+ "3ar.";
         name += type;
         body.open(name.c_str(), std::ios::in | std::ios::out | std::ios::trunc |std::ios::binary); 
         if(!body.is_open())
@@ -62,7 +62,7 @@ void Request::pars_chunked_body(size_t size) {
 }
 
 
-void Request::request_append(const char *str,int length,size_t size)
+void Request::request_append(const char *str,int length,size_t size,std::vector<Config>& parsing)
 {
         //std::cout << len <<"ss" << str << std::cout;
         if(k == -2 && length == 0)
@@ -94,6 +94,12 @@ void Request::request_append(const char *str,int length,size_t size)
                 read = true;
             }
             fill_header(size);
+            check_request(parsing);
+            if(status_value != 201)
+            {
+                read = true;
+                return;
+            }
         }
         else if(k < 0 && length > 0)
         {

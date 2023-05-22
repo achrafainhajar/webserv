@@ -116,7 +116,7 @@ void Response::respons_301()
     std::ostringstream response;
 
     response << "HTTP/1.1 301 Moved Permanently\r\n";
-    response << "Location: "<< fullpath <<"\r\n";
+    response << "Location: "<< r_data.fullpath <<"\r\n";
     response << "Content-Type: text/html; charset=UTF-8\r\n";
     response << "Content-Length: 0\r\n";
     response << "Connection: close\r\n";
@@ -197,7 +197,7 @@ void Response::respons(int client_sock,std::vector<Config> &parsing)
     if(check_status() == 1)
         c = -1;
     else if(r_data.getMethod() == "GET" && c != -4 && remaining.size() == 0)
-        respons_200(fullpath);
+        respons_200(r_data.fullpath);
     else if(r_data.getMethod() == "POST")
     {
         respons_201("src/parsing/index1.html");

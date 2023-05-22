@@ -150,7 +150,7 @@ void Server::start(std::vector<Config> &parsing)
 						FD_CLR(i, &backupWrite);
 						isClient(i)	&& close(i);
 					}
-					it->res_data.r_data.request_append(buffer,rec,atol(parsing[0].getClientMaxBodySize().c_str()));
+					it->res_data.r_data.request_append(buffer,rec,atol(parsing[0].getClientMaxBodySize().c_str()),parsing);
 					if (it->res_data.r_data.getread() == true)
 					{
 						std::cout << "hello im here in cond " << std::endl;
@@ -167,8 +167,6 @@ void Server::start(std::vector<Config> &parsing)
 							break;
    					}
 					std::cout << "im here in response " << std::endl;
-					if(it->res_data.r_data.status_value == 0)
-						it->res_data.check_request(parsing);
 					it->res_data.respons(i,parsing);
 					if(it->res_data.c <= 0)
 					{

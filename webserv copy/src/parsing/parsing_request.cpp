@@ -7,7 +7,7 @@ void Request::pars_chunked_body(size_t size) {
     {
         return;
     }
-
+    std::cout << "im here" << std::endl;
     bodyStart += 4;
     std::string data = request.substr(bodyStart);
     if(size < data.size())
@@ -94,7 +94,8 @@ void Request::request_append(const char *str,int length,size_t size,std::vector<
                 read = true;
             }
             fill_header(size);
-            check_request(parsing);
+            if(status_value == 0)
+                check_request(parsing);
             if(status_value != 201)
             {
                 read = true;
@@ -140,14 +141,14 @@ void Request::parse_header(size_t size)
                 }
                 else
                 {
-                    status_value = 400;
+                    status_value = 501;
                     read = true;
                     return ;
                 }
             }
         else
         {
-                std::map<std::string, std::string> ::iterator it = header.find("Content-Length");
+            std::map<std::string, std::string> ::iterator it = header.find("Content-Length");
             if(it != header.end())
             {
                 content_length = std::atoi(header["Content-Length"].c_str());
